@@ -81,6 +81,15 @@ watch(
 	}
 )
 
+// Add a field for employees to add a reason for attendance outside the office
+watch(
+	() => attendanceRequest.value.reason,
+	(reason) => {
+		const explanation_field = formFields.data.find((field) => field.fieldname === "explanation")
+		explanation_field.hidden = reason !== "Outside Office"
+	}
+)
+
 // helper functions
 function setFormReadOnly() {
 	formFields.data.map((field) => (field.read_only = true))

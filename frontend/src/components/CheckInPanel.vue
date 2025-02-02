@@ -69,6 +69,33 @@
 				</div>
 			</template>
 
+				<!-- Add a field for employees to add a reason for attendance outside the office -->
+				<div class="w-full">
+					<label for="attendance-reason" class="block text-sm font-medium text-gray-700">
+						{{ __("Reason for Attendance Outside Office") }}
+					</label>
+					<input
+						type="text"
+						id="attendance-reason"
+						v-model="attendanceReason"
+						class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+					/>
+				</div>
+
+				<!-- Add functionality to take selfies during check-in and check-out -->
+				<div class="w-full mt-4">
+					<label for="selfie" class="block text-sm font-medium text-gray-700">
+						{{ __("Take a Selfie") }}
+					</label>
+					<input
+						type="file"
+						id="selfie"
+						accept="image/*"
+						@change="handleSelfieUpload"
+						class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+					/>
+				</div>
+
 			<Button variant="solid" class="w-full py-5 text-sm" @click.once="submitLog(nextAction.action)">
 				{{ __("Confirm {0}", [nextAction.label]) }}
 			</Button>
@@ -93,6 +120,8 @@ const checkinTimestamp = ref(null)
 const latitude = ref(0)
 const longitude = ref(0)
 const locationStatus = ref("")
+const attendanceReason = ref("") // Add a field for attendance reason
+const selfie = ref(null) // Add a ref for the selfie input
 
 const settings = createResource({
 	url: "hrms.api.get_hr_settings",
@@ -156,6 +185,17 @@ const handleEmployeeCheckin = () => {
 	}
 }
 
+const handleSelfieUpload = (event) => {
+	const file = event.target.files[0]
+	if (file) {
+		const reader = new FileReader()
+		reader.onload = (e) => {
+			selfie.value = e.target.result
+		}
+		reader.readAsDataURL(file)
+	}
+}
+
 const submitLog = (logType) => {
 	const actionLabel = logType === "IN" ? __("Check-in") : __("Check-out")
 
@@ -166,6 +206,8 @@ const submitLog = (logType) => {
 			time: checkinTimestamp.value,
 			latitude: latitude.value,
 			longitude: longitude.value,
+			attendance_reason: attendanceReason.value, // Include attendance reason
+			selfie: selfie.value, // Include selfie data
 		},
 		{
 			onSuccess() {

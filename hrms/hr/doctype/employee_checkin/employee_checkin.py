@@ -26,6 +26,8 @@ class EmployeeCheckin(Document):
 		self.fetch_shift()
 		self.set_geolocation()
 		self.validate_distance_from_shift_location()
+		self.handle_selfie_upload()
+		self.handle_attendance_reason()
 
 	def validate_duplicate_log(self):
 		doc = frappe.db.exists(
@@ -108,7 +110,26 @@ class EmployeeCheckin(Document):
 			frappe.throw(
 				_("You must be within {0} meters of your shift location to check in.").format(checkin_radius),
 				exc=CheckinRadiusExceededError,
+				)
+
+	def handle_selfie_upload(self):
+		if self.selfie:
+			file_doc = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": f"{self.employee}_selfie_{self.time}.jpg",
+					"attached_to_doctype": "Employee Checkin",
+					"attached_to_name": self.name,
+					"content": self.selfie,
+					"is_private": 1,
+				}
 			)
+			file_doc.save()
+			self.selfie_file = file_doc.file_url
+
+	def handle_attendance_reason(self):
+		if self.attendance_reason:
+			self.db_set("attendance_reason", self.attendance_reason)
 
 
 @frappe.whitelist()
